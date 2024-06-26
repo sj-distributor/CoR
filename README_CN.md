@@ -1,3 +1,8 @@
+[![Build Status](https://github.com/sj-distributor/CoR/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/sj-distributor/CoR/actions?query=branch%3Amain)
+[![codecov](https://codecov.io/gh/sj-distributor/CoR/graph/badge.svg?token=854D06RAR2)](https://codecov.io/gh/sj-distributor/CoR)
+[![NuGet version (CoRProcessor)](https://img.shields.io/nuget/v/CoRProcessor.svg?style=flat-square)](https://www.nuget.org/packages/CoRProcessor/)
+![](https://img.shields.io/badge/license-MIT-green)
+
 # CoRProcessor Framework
 
 ### 概述 🌟
