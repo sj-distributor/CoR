@@ -1,3 +1,9 @@
+[![Build Status](https://github.com/sj-distributor/CoR/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/sj-distributor/CoR/actions?query=branch%3Amain)
+[![codecov](https://codecov.io/gh/sj-distributor/FastCache/branch/master/graph/badge.svg?token=XV3W873RGV)](https://codecov.io/gh/sj-distributor/CoR)
+[![NuGet version (CoRProcessor)](https://img.shields.io/nuget/v/CoRProcessor.svg?style=flat-square)](https://www.nuget.org/packages/CoRProcessor/)
+![](https://img.shields.io/badge/license-MIT-green)
+
+
 # CoRProcessor Framework
 
 ### Overview 🌟
@@ -5,7 +11,10 @@ The CoRProcessor framework provides a way to implement the Chain of Responsibili
 
 ### Getting Started 🚀
 #### Installation 📦
-To use the CoRProcessor framework, simply add the `COR.Core` namespace to your project.
+To use the CoRProcessor framework, simply add the `CoRProcessor` package to your project.
+```csharp
+dotnet add package CoRProcessor
+```
 
 ### Define a Processor 🛠️
 Processors must implement the `IChainProcessor<T>` interface. Here's an example of a simple processor:

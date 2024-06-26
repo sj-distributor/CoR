@@ -5,7 +5,10 @@ CoRProcessor 框架为在 .NET 应用中实现责任链（Chain of Responsibilit
 
 ### 快速开始 🚀
 #### 安装 📦
-要使用 CoRProcessor 框架，只需将 `COR.Core` 添加到您的项目中。
+要使用 CoRProcessor 框架，只需将 `CoRProcessor` 添加到您的项目中。
+```csharp
+dotnet add package CoRProcessor
+```
 
 ### 定义处理器 🛠️
 处理器必须实现 `IChainProcessor<T>` 接口。以下是一个简单处理器的示例：
