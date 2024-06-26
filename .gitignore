@@ -1,0 +1,11 @@
+.idea
+.idea/*
+.idea/workspace.xml
+*.xml
+bin
+obj
+*/.idea/*
+artifacts
+TestResults
+COR.sln.DotSettings.user
+*/.DS_Store

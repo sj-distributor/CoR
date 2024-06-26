@@ -1,14 +1,14 @@
 # CoRProcessor Framework
 
-### Overview 🌟
-The CoRProcessor framework provides a way to implement the Chain of Responsibility (CoR) pattern in .NET applications. It allows you to define a chain of processors that can handle a request in sequence, with support for adding before, after, and finally actions, as well as exception handling.
+### 概述 🌟
+CoRProcessor 框架为在 .NET 应用中实现责任链（Chain of Responsibility, CoR）模式提供了一种方法。它允许您定义一系列处理器，以顺序处理请求，并支持添加前置、后置和最终操作，以及异常处理。
 
-### Getting Started 🚀
-#### Installation 📦
-To use the CoRProcessor framework, simply add the `COR.Core` namespace to your project.
+### 快速开始 🚀
+#### 安装 📦
+要使用 CoRProcessor 框架，只需将 `COR.Core` 添加到您的项目中。
 
-### Define a Processor 🛠️
-Processors must implement the `IChainProcessor<T>` interface. Here's an example of a simple processor:
+### 定义处理器 🛠️
+处理器必须实现 `IChainProcessor<T>` 接口。以下是一个简单处理器的示例：
 
 ```csharp
 public class SampleProcessor : IChainProcessor<MyData>
@@ -27,8 +27,8 @@ public class SampleProcessor : IChainProcessor<MyData>
 
 ```
 
-### Create and Execute the Processor Chain 🏗️
-You can create and execute a processor chain using the `CoRProcessor<T>` class. Here's how to do it:
+### 创建和执行处理器链 🏗️
+您可以使用 `CoRProcessor<T>` 类创建和执行处理器链。如下所示：
 ```csharp
 class Program
 {
@@ -72,16 +72,16 @@ class Program
     }
 ```
 ### Methods 📚
-* **New()**: Creates a new instance of the `CoRProcessor<T>`. 
-* **AddRange(IEnumerable<IChainProcessor<T>> processors)**: Adds a range of processors to the chain.
-* **Execute(T t, CancellationToken token = default)**: Executes the processor chain with the provided data and cancellation token.
-* **Before(FuncDelegate<T> action)**: Adds an action to be executed before the main processing.
-* **After(FuncDelegate<T> action)**: Adds an action to be executed after the main processing.
-* **Finally(FuncDelegate<T> action)**: Adds an action to be executed after all processing is complete.
-* **OnException(FuncDelegate<T> action)**: Adds an action to be executed when an exception occurs.
+* **New()**: 创建一个新的 `CoRProcessor<T>` 实例。
+* **AddRange(IEnumerable<IChainProcessor<T>> processors)**: 向链中添加一系列处理器。
+* **Execute(T t, CancellationToken token = default)**: 使用提供的数据和取消令牌执行处理器链。
+* **Before(FuncDelegate<T> action)**: 添加一个在主要处理之前执行的操作。
+* **After(FuncDelegate<T> action)**: 添加一个在主要处理之后执行的操作。
+* **Finally(FuncDelegate<T> action)**: 添加一个在所有处理完成后执行的操作(即使抛出异常, 依然会始终执行)。
+* **OnException(FuncDelegate<T> action)**: 添加一个在发生异常时执行的操作。
 
-### Exception Handling ⚠️
-To handle exceptions, you can use the OnException method. This allows you to specify an action that should be taken when an exception occurs during processing.
+### 异常处理 ⚠️
+要处理异常，您可以使用 OnException 方法。这允许您在处理过程中发生异常时指定要执行的操作。
 ```csharp
 processor.OnException(async (data, token) =>
 {
@@ -90,11 +90,11 @@ processor.OnException(async (data, token) =>
 });
 ```
 
-### Dependency Injection (DI) Usage☀️
-### Microsoft Dependency Injection (DI) 🏢
-You can integrate the CoRProcessor with Microsoft's built-in Dependency Injection (DI) system. Here's an example of how to do it:
-As long as IChainProcessor<T>is implemented, the AddCoR method will automatically register
-#### Configure DI in your Console Application:
+### 依赖注入（DI）使用 ☀️
+### 微软依赖注入（DI） 🏢
+您可以将 CoRProcessor 与微软内置的依赖注入（DI）系统集成。以下是一个示例：
+只要实现了 IChainProcessor<T>,  AddCoR方法会自动注册
+#### 在控制台应用中配置 DI (您也可以在 Web 程序中使用)： 
 ```csharp
 class Program
 {
@@ -120,10 +120,10 @@ class Program
     }
 }
 ```
-### Autofac Integration 🛠️
-You can also use Autofac for Dependency Injection. Here’s how you can integrate Autofac with the CoRProcessor framework:
-As long as IChainProcessor<T>is implemented, the AddCoR method will automatically register.
-#### Configure Autofac in your Console Application:
+### Autofac 集成 🛠️
+您也可以使用 Autofac 进行依赖注入。以下是如何将 Autofac 与 CoRProcessor 框架集成：
+只要实现了 IChainProcessor<T>,  AddCoR方法会自动注册
+#### 在控制台应用中配置 Autofac (您也可以在 Web 程序中使用)：
 ```csharp
 class Program
 {
@@ -151,5 +151,5 @@ class Program
 }
 ```
 
-### License 📄
-This project is licensed under the MIT License. See the LICENSE file for details.
+### 许可证 📄
+该项目根据 MIT 许可证授权。有关详细信息，请参阅 LICENSE 文件。
