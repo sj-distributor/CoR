@@ -38,7 +38,6 @@ namespace CoRProcessor
 
         public async Task<T> Execute(T t, CancellationToken token = default)
         {
-            _chainProcessors.Add(new EmptyProcessor<T>());
             _firstHandler = BuildChain(_chainProcessors.DistinctBy(x => x.GetType()).ToList());
             
             try
@@ -95,10 +94,12 @@ namespace CoRProcessor
             return this;
         }
 
-        private IChainProcessor<T> BuildChain(IReadOnlyList<IChainProcessor<T>> processors)
+        private IChainProcessor<T> BuildChain(List<IChainProcessor<T>> processors)
         {
             if (processors.Count == 0)
                 throw new Exception("No processors provided. At least one processor is required.");
+            
+            processors.Add(new EmptyProcessor<T>());
 
             for (var i = 0; i < processors.Count - 1; i++)
             {

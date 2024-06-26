@@ -13,10 +13,7 @@ namespace CoRProcessor
             foreach (var type in assembly.GetTypes()
                          .Where(t => IsAssignableToGenericType(t, typeof(IChainProcessor<>)) && t.IsClass))
             {
-                if (type.GetGenericArguments().Length > 0)
-                {
-                    continue;
-                }
+                if (type.GetGenericArguments().Length > 0) continue;
                 services.AddScoped(type); 
             }
             
@@ -28,10 +25,7 @@ namespace CoRProcessor
             foreach (var type in assembly.GetTypes()
                          .Where(t => IsAssignableToGenericType(t, typeof(IChainProcessor<>)) && t.IsClass))
             {
-                if (type.GetGenericArguments().Length > 0)
-                {
-                    continue;
-                }
+                if (type.GetGenericArguments().Length > 0) continue;
                 containerBuilder.RegisterType(type).AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
             }
 

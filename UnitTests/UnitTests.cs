@@ -218,4 +218,22 @@ public class UnitTests
         
         Assert.That(result.Result, Is.EqualTo(2));
     }
+    
+    
+    [Test]
+    public async Task TestEmptyProcessorRunning()
+    {
+        var emptyProcessor = new EmptyProcessor<NumberContext>();
+        emptyProcessor.Next = new AdditionProcessor();
+
+        var result = await emptyProcessor.Handle(new NumberContext()
+        {
+            Number1 = 1,
+            Number2 = 2,
+            Operation = Operation.Addition
+        }, default);
+
+        Assert.That(result.Result, Is.EqualTo(0));
+        Assert.That(emptyProcessor.Next.GetType().FullName, Is.EqualTo(typeof(AdditionProcessor).FullName));
+    }
 }
