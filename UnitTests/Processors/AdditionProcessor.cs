@@ -1,17 +1,16 @@
-using COR.Core;
+using CoRProcessor;
 
 namespace UnitTests.Processors;
 
-public class ExceptionProcessor : IChainProcessor<NumberContext>
+public class AdditionProcessor : IChainProcessor<NumberContext>
 {
     public IChainProcessor<NumberContext> Next { get; set; }
     public async Task<NumberContext> Handle(NumberContext t, CancellationToken token = default)
     {
-        var n = 1;
-        var m = 0;
+        if (t.Operation != Operation.Addition) return await Next.Handle(t, token);
 
-        var result = n / m;
-
+        t.Result = t.Number1 + t.Number2;
+        
         return await Next.Handle(t, token);
     }
 }

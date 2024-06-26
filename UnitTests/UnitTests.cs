@@ -1,5 +1,5 @@
 using Autofac;
-using COR.Core;
+using CoRProcessor;
 using Microsoft.Extensions.DependencyInjection;
 using UnitTests.Processors;
 

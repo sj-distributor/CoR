@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace COR.Core
+namespace CoRProcessor
 {
     public class EmptyProcessor<T> : IChainProcessor<T>
     {

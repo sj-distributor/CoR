@@ -4,7 +4,7 @@ using System.Reflection;
 using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace COR.Core
+namespace CoRProcessor
 {
     public static class SetupCor
     {

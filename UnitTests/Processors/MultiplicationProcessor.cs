@@ -1,4 +1,5 @@
-using COR.Core;
+
+using CoRProcessor;
 
 namespace UnitTests.Processors;
 

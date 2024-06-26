@@ -4,9 +4,9 @@ using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
-using COR.Core.Extensions;
+using CoRProcessor.Extensions;
 
-namespace COR.Core
+namespace CoRProcessor
 {
     public delegate Task FuncDelegate<T>(T arg, CancellationToken cancellationToken);
 

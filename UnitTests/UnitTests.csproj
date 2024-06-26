@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\COR.Core\COR.Core.csproj" />
+      <ProjectReference Include="..\CoRProcessor\CoRProcessor.csproj" />
     </ItemGroup>
 
 </Project>

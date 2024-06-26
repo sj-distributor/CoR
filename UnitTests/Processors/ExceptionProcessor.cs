@@ -1,16 +1,18 @@
-using COR.Core;
+
+using CoRProcessor;
 
 namespace UnitTests.Processors;
 
-public class SubtractionProcessor : IChainProcessor<NumberContext>
+public class ExceptionProcessor : IChainProcessor<NumberContext>
 {
     public IChainProcessor<NumberContext> Next { get; set; }
     public async Task<NumberContext> Handle(NumberContext t, CancellationToken token = default)
     {
-        if (t.Operation != Operation.Subtraction) return await Next.Handle(t, token);
+        var n = 1;
+        var m = 0;
 
-        t.Result = t.Number1 - t.Number2;
-        
+        var result = n / m;
+
         return await Next.Handle(t, token);
     }
 }

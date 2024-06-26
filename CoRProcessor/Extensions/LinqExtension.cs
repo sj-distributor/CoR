@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace COR.Core.Extensions
+namespace CoRProcessor.Extensions
 {
     public static class LinqExtension
     {
