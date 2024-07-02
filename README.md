@@ -158,6 +158,29 @@ class Program
     }
 }
 ```
+### Practical examples ☀️
+#### Here is an example of how to use the CoRProcessor framework in a practical scenario:
+```csharp
+ var result = await CoRProcessor<InsertOrUpdateOrderProcessorContext>
+            .New()
+            .AddRange([
+                orderPreProcessor,
+                orderValidaProcessor,
+                orderCustomerProcessor,
+                subTotalCalculationProcessor,
+                discountAndChargeCalculationProcessor,
+                subTotalBeforeDiscountCalculationProcessor,
+                taxCalculationBeforeDiscountProcessor,
+                taxCalculationAfterDiscountedProcessor,
+                tipsCalculationProcessor,
+                saveOrderRelationProcessor
+            ])
+            .Execute(new()
+            {
+                Merchant = merchant,
+                Order = order,
+            }, cancellationToken).ConfigureAwait(false);
+```
 
 ### License 📄
 This project is licensed under the MIT License. See the LICENSE file for details.
