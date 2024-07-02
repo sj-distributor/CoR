@@ -8,4 +8,5 @@ obj
 artifacts
 TestResults
 */*.DotSettings.user
+CoRProcessor.sln.DotSettings.user
 */.DS_Store
