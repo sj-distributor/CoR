@@ -4,13 +4,20 @@ namespace UnitTests.Processors;
 
 public class AdditionProcessor : IChainProcessor<NumberContext>
 {
-    public IChainProcessor<NumberContext> Next { get; set; }
-    public async Task<NumberContext> Handle(NumberContext t, CancellationToken token = default)
+    public Task<NumberContext> Handle(NumberContext t, CancellationToken token = default)
     {
-        if (t.Operation != Operation.Addition) return await Next.Handle(t, token);
+        if (t.Operation != Operation.Addition) return Task.FromResult(t);
 
-        t.Result = t.Number1 + t.Number2;
-        
-        return await Next.Handle(t, token);
+        t.Result += t.Number1 + t.Number2;
+
+        return Task.FromResult(t);
     }
+
+    public FuncDelegate<NumberContext> CompensateOnFailure { get; set; } = (context, token) =>
+    {
+        context.Number1 = 100.00m;
+        context.Number2 = 100.00m;
+        context.Result += 1;
+        return Task.FromResult(context);
+    }; 
 }

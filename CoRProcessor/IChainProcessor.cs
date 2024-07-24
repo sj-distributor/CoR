@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 
 namespace CoRProcessor
 {
-    public interface IChainProcessor<T>
+    public interface IChainProcessor<T> where T : IChainContext
     {
-        IChainProcessor<T> Next { get; set; }
-        Task<T> Handle(T t, CancellationToken token = default);
+        Task<T> Handle(T t, CancellationToken cancellationToken = default);
+        FuncDelegate<T> CompensateOnFailure { get; set; }
     }
 }

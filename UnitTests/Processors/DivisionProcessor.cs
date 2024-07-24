@@ -5,13 +5,14 @@ namespace UnitTests.Processors;
 
 public class DivisionProcessor : IChainProcessor<NumberContext>
 {
-    public IChainProcessor<NumberContext> Next { get; set; }
-    public async Task<NumberContext> Handle(NumberContext t, CancellationToken token = default)
+    public Task<NumberContext> Handle(NumberContext t, CancellationToken token = default)
     {
-        if (t.Operation != Operation.Division) return await Next.Handle(t, token);
+        if (t.Operation != Operation.Division)  return Task.FromResult(t);
 
         t.Result = decimal.Round(t.Number1 / t.Number2, 2);
         
-        return await Next.Handle(t, token);
+        return Task.FromResult(t);
     }
+
+    public FuncDelegate<NumberContext> CompensateOnFailure { get; set; }
 }

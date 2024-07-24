@@ -39,7 +39,7 @@ public class UnitTests
     {
         var resContext = await CoRProcessor<NumberContext>
             .New()
-            .Before(async (t, token) =>
+            .GlobalPreExecute(async (t, token) =>
             {
                 Assert.That(t.Number1, Is.EqualTo(number1));
                 Assert.That(t.Number2, Is.EqualTo(number2));
@@ -47,7 +47,7 @@ public class UnitTests
                 t.Number2 += beforeChange;
                 await Task.CompletedTask;
             })
-            .After(async (t, token) =>
+            .GlobalExecuted(async (t, token) =>
             {
                 t.Result += afterChange;
                 await Task.CompletedTask;
@@ -84,7 +84,7 @@ public class UnitTests
         {
             await CoRProcessor<NumberContext>
                 .New()
-                .Before(async (t, token) =>
+                .GlobalPreExecute(async (t, token) =>
                 {
                     Assert.That(t.Number1, Is.EqualTo(number1));
                     Assert.That(t.Number2, Is.EqualTo(number2));
@@ -92,7 +92,7 @@ public class UnitTests
                     t.Number2 += beforeChange;
                     await Task.CompletedTask;
                 })
-                .After(async (t, token) =>
+                .GlobalExecuted(async (t, token) =>
                 {
                     t.Result += afterChange;
                     await Task.CompletedTask;
@@ -131,7 +131,7 @@ public class UnitTests
         {
             await CoRProcessor<NumberContext>
                 .New()
-                .Before(async (t, token) =>
+                .GlobalPreExecute(async (t, token) =>
                 {
                     Assert.That(t.Number1, Is.EqualTo(number1));
                     Assert.That(t.Number2, Is.EqualTo(number2));
@@ -139,7 +139,7 @@ public class UnitTests
                     t.Number2 += beforeChange;
                     await Task.CompletedTask;
                 })
-                .After(async (t, token) =>
+                .GlobalExecuted(async (t, token) =>
                 {
                     t.Result += afterChange;
                     await Task.CompletedTask;
@@ -149,10 +149,10 @@ public class UnitTests
                     t.Result += finallyChange;
                     await Task.CompletedTask;
                 })
-                .OnException(async (t, token) =>
+                .OnException(async (t, e, token) =>
                 {
                     t.Result += finallyChange;
-                    await Task.CompletedTask;
+                    return await Task.FromResult(true);
                 })
                 .AddRange([
                     new ExceptionProcessor(),
@@ -169,11 +169,10 @@ public class UnitTests
             Assert.That(e.Message, Is.EqualTo("Attempted to divide by zero."));
         }
     }
-    
+
     [Test]
     public async Task TestCorProcessorRunningOnMSDI()
     {
-        
         var serviceProvider = new ServiceCollection()
             .AddCoR(typeof(UnitTests).Assembly)
             .BuildServiceProvider();
@@ -191,14 +190,13 @@ public class UnitTests
                 Number2 = 1,
                 Operation = Operation.Addition
             }, default);
-        
+
         Assert.That(result.Result, Is.EqualTo(2));
     }
-    
+
     [Test]
     public async Task TestCorProcessorRunningOnAutofac()
     {
-        
         var builder = new ContainerBuilder();
         var container = builder.AddCoR(typeof(UnitTests).Assembly).Build();
 
@@ -215,11 +213,11 @@ public class UnitTests
                 Number2 = 1,
                 Operation = Operation.Addition
             }, default);
-        
+
         Assert.That(result.Result, Is.EqualTo(2));
     }
-    
-    
+
+
     [Test]
     public async Task TestEmptyProcessorRunning()
     {
@@ -235,5 +233,100 @@ public class UnitTests
 
         Assert.That(result.Result, Is.EqualTo(0));
         Assert.That(emptyProcessor.Next.GetType().FullName, Is.EqualTo(typeof(AdditionProcessor).FullName));
+    }
+
+    [Test]
+    public async Task TestChainAbortCanStopExecute()
+    {
+        var result = await CoRProcessor<NumberContext>
+            .New()
+            .AddRange([
+                new AbortProcessor(),
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+            ])
+            .Execute(new NumberContext()
+            {
+                Number1 = 1,
+                Number2 = 1,
+                Operation = Operation.Addition
+            }, default);
+
+
+        Assert.That(result.Result, Is.EqualTo(0));
+
+        result = await CoRProcessor<NumberContext>
+            .New()
+            .AddRange([
+                new AdditionProcessor(),
+                new AbortProcessor(),
+                new AdditionProcessor(),
+            ])
+            .Execute(new NumberContext()
+            {
+                Number1 = 1,
+                Number2 = 1,
+                Operation = Operation.Addition
+            }, default);
+
+        Assert.That(result.Result, Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task TestCompensateOnFailure()
+    {
+        var result = await CoRProcessor<NumberContext>
+            .New()
+            .AddRange([
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+                new ExceptionProcessor(),
+                new AdditionProcessor(),
+            ])
+            .OnException(async (t, e, token) => await Task.FromResult(false))
+            .Execute(new NumberContext()
+            {
+                Number1 = 1,
+                Number2 = 1,
+                Operation = Operation.Addition
+            }, default);
+
+        Assert.That(result.Result, Is.EqualTo(6));
+        
+         result = await CoRProcessor<NumberContext>
+            .New()
+            .AddRange([
+                new AdditionProcessor(),
+                new ExceptionProcessor(),
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+            ])
+            .OnException(async (t, e, token) => await Task.FromResult(false))
+            .Execute(new NumberContext()
+            {
+                Number1 = 1,
+                Number2 = 1,
+                Operation = Operation.Addition
+            }, default);
+
+        Assert.That(result.Result, Is.EqualTo(3));
+        
+        result = await CoRProcessor<NumberContext>
+            .New()
+            .AddRange([
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+                new ExceptionProcessor(),
+            ])
+            .OnException(async (t, e, token) => await Task.FromResult(false))
+            .Execute(new NumberContext()
+            {
+                Number1 = 1,
+                Number2 = 1,
+                Operation = Operation.Addition
+            }, default);
+
+        Assert.That(result.Result, Is.EqualTo(9));
     }
 }

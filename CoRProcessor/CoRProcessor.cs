@@ -1,25 +1,28 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
-using CoRProcessor.Extensions;
 
 namespace CoRProcessor
 {
-    public delegate Task FuncDelegate<T>(T arg, CancellationToken cancellationToken);
+    public delegate Task ActionDelegate<T>(T arg, CancellationToken cancellationToken) where T : IChainContext;
 
-    public class CoRProcessor<T>
+    public delegate Task<T> FuncDelegate<T>(T arg, CancellationToken cancellationToken)
+        where T : IChainContext;
+
+    public delegate Task<bool> OnExceptionDelegate<T>(T arg, Exception e, CancellationToken cancellationToken)
+        where T : IChainContext;
+
+    public class CoRProcessor<T> where T : IChainContext
     {
-        private IChainProcessor<T> _firstHandler;
-
         private readonly List<IChainProcessor<T>> _chainProcessors = new List<IChainProcessor<T>>();
+        private readonly List<FuncDelegate<T>> _delegates = new List<FuncDelegate<T>>();
 
-        private FuncDelegate<T> _finallyAction = null;
-        private FuncDelegate<T> _beforeAction = null;
-        private FuncDelegate<T> _afterAction = null;
-        private FuncDelegate<T> _onException = null;
+        private ActionDelegate<T> _finallyAction = null;
+        private ActionDelegate<T> _beforeAction = null;
+        private ActionDelegate<T> _afterAction = null;
+        private OnExceptionDelegate<T> _onException = null;
 
         private CoRProcessor()
         {
@@ -38,26 +41,32 @@ namespace CoRProcessor
 
         public async Task<T> Execute(T t, CancellationToken token = default)
         {
-            _firstHandler = BuildChain(_chainProcessors.DistinctBy(x => x.GetType()).ToList());
-            
+            var context = t;
             try
             {
-                if (_beforeAction != null)
-                    await _beforeAction.Invoke(t, token);
+                if (_beforeAction != null) await _beforeAction.Invoke(t, token);
 
-                var handle = await _firstHandler.Handle(t, token);
+                foreach (var chainProcessor in _chainProcessors)
+                {
+                    if (context.Abort) break;
+                    if (chainProcessor.CompensateOnFailure != null) _delegates.Add(chainProcessor.CompensateOnFailure);
+                    context = await chainProcessor.Handle(context, token);
+                }
 
-                if (_afterAction == null) return handle;
+                if (_afterAction == null) return context;
 
-                await _afterAction.Invoke(handle, token);
+                await _afterAction.Invoke(context, token);
 
-                return handle;
+                return context;
             }
             catch (Exception e)
             {
+                foreach (var funcDelegate in _delegates) await funcDelegate.Invoke(context, token);
+
                 if (_onException != null)
                 {
-                    await _onException.Invoke(t, token);
+                    var isThrow = await _onException.Invoke(context, e, token);
+                    if (!isThrow) return context;
                 }
 
                 ExceptionDispatchInfo.Capture(e).Throw();
@@ -66,47 +75,32 @@ namespace CoRProcessor
             finally
             {
                 if (_finallyAction != null)
-                    await _finallyAction.Invoke(t, token);
+                    await _finallyAction.Invoke(context, token);
             }
         }
 
-        public CoRProcessor<T> Before(FuncDelegate<T> action)
+        public CoRProcessor<T> GlobalPreExecute(ActionDelegate<T> action)
         {
             _beforeAction = action;
             return this;
         }
 
-        public CoRProcessor<T> After(FuncDelegate<T> action)
+        public CoRProcessor<T> GlobalExecuted(ActionDelegate<T> action)
         {
             _afterAction = action;
             return this;
         }
 
-        public CoRProcessor<T> Finally(FuncDelegate<T> action)
+        public CoRProcessor<T> Finally(ActionDelegate<T> action)
         {
             _finallyAction = action;
             return this;
         }
 
-        public CoRProcessor<T> OnException(FuncDelegate<T> action)
+        public CoRProcessor<T> OnException(OnExceptionDelegate<T> action)
         {
             _onException = action;
             return this;
-        }
-
-        private IChainProcessor<T> BuildChain(List<IChainProcessor<T>> processors)
-        {
-            if (processors.Count == 0)
-                throw new Exception("No processors provided. At least one processor is required.");
-            
-            processors.Add(new EmptyProcessor<T>());
-
-            for (var i = 0; i < processors.Count - 1; i++)
-            {
-                processors[i].Next = processors[i + 1];
-            }
-
-            return processors[0];
         }
     }
 }
