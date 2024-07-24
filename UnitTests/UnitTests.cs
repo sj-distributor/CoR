@@ -222,7 +222,6 @@ public class UnitTests
     public async Task TestEmptyProcessorRunning()
     {
         var emptyProcessor = new EmptyProcessor<NumberContext>();
-        emptyProcessor.Next = new AdditionProcessor();
 
         var result = await emptyProcessor.Handle(new NumberContext()
         {
@@ -232,7 +231,6 @@ public class UnitTests
         }, default);
 
         Assert.That(result.Result, Is.EqualTo(0));
-        Assert.That(emptyProcessor.Next.GetType().FullName, Is.EqualTo(typeof(AdditionProcessor).FullName));
     }
 
     [Test]

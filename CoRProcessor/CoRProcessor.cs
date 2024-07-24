@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace CoRProcessor
 {
-    public delegate Task ActionDelegate<T>(T arg, CancellationToken cancellationToken) where T : IChainContext;
+    public delegate Task ActionDelegate<T>(T ctx, CancellationToken cancelToken) where T : IChainContext;
 
-    public delegate Task<T> FuncDelegate<T>(T arg, CancellationToken cancellationToken)
+    public delegate Task<T> FuncDelegate<T>(T ctx, CancellationToken cancelToken)
         where T : IChainContext;
 
-    public delegate Task<bool> OnExceptionDelegate<T>(T arg, Exception e, CancellationToken cancellationToken)
+    public delegate Task<bool> OnExceptionDelegate<T>(T ctx, Exception e, CancellationToken cancelToken)
         where T : IChainContext;
 
     public class CoRProcessor<T> where T : IChainContext
@@ -39,34 +39,33 @@ namespace CoRProcessor
             return this;
         }
 
-        public async Task<T> Execute(T t, CancellationToken token = default)
+        public async Task<T> Execute(T ctx, CancellationToken cancelToken = default)
         {
-            var context = t;
             try
             {
-                if (_beforeAction != null) await _beforeAction.Invoke(t, token);
+                if (_beforeAction != null) await _beforeAction.Invoke(ctx, cancelToken);
 
                 foreach (var chainProcessor in _chainProcessors)
                 {
-                    if (context.Abort) break;
+                    if (ctx.Abort) break;
                     if (chainProcessor.CompensateOnFailure != null) _delegates.Add(chainProcessor.CompensateOnFailure);
-                    context = await chainProcessor.Handle(context, token);
+                    ctx = await chainProcessor.Handle(ctx, cancelToken);
                 }
 
-                if (_afterAction == null) return context;
+                if (_afterAction == null) return ctx;
 
-                await _afterAction.Invoke(context, token);
+                await _afterAction.Invoke(ctx, cancelToken);
 
-                return context;
+                return ctx;
             }
             catch (Exception e)
             {
-                foreach (var funcDelegate in _delegates) await funcDelegate.Invoke(context, token);
+                foreach (var funcDelegate in _delegates) await funcDelegate.Invoke(ctx, cancelToken);
 
                 if (_onException != null)
                 {
-                    var isThrow = await _onException.Invoke(context, e, token);
-                    if (!isThrow) return context;
+                    var isThrow = await _onException.Invoke(ctx, e, cancelToken);
+                    if (!isThrow) return ctx;
                 }
 
                 ExceptionDispatchInfo.Capture(e).Throw();
@@ -75,7 +74,7 @@ namespace CoRProcessor
             finally
             {
                 if (_finallyAction != null)
-                    await _finallyAction.Invoke(context, token);
+                    await _finallyAction.Invoke(ctx, cancelToken);
             }
         }
 
