@@ -53,6 +53,27 @@ public class SampleProcessor : IChainProcessor<MyData>
 
 ```
 
+### 指定执行的处理器 ⚙️
+您可以指定执行某几个处理器：
+```csharp
+    var result = await CoRProcessor<NumberContext>
+            .New()
+            .AddRange([
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+            ])
+            .Execute(new NumberContext()
+            {
+                Number1 = 1,
+                Number2 = 1,
+                Operation = Operation.Addition
+            }, default, 3, 4); // 指定了 index 为 2, 3 的处理器将会执行, 其余则不会执行
+
+    Console.WriteLine(result.Data);
+```
+
 ### 创建和执行处理器链 🏗️
 您可以使用 `CoRProcessor<T>` 类创建和执行处理器链。如下所示：
 ```csharp

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,17 +40,18 @@ namespace CoRProcessor
             return this;
         }
 
-        public async Task<T> Execute(T ctx, CancellationToken cancelToken = default)
+        public async Task<T> Execute(T ctx,  CancellationToken cancelToken = default, params int[] steps)
         {
             try
             {
                 if (_beforeAction != null) await _beforeAction.Invoke(ctx, cancelToken);
-
-                foreach (var chainProcessor in _chainProcessors)
+                
+                for (var i = 0; i < _chainProcessors.Count; i++)
                 {
+                    if (steps.Length > 0 && !steps.Contains(i)) continue;
                     if (ctx.Abort) break;
-                    if (chainProcessor.CompensateOnFailure != null) _delegates.Add(chainProcessor.CompensateOnFailure);
-                    ctx = await chainProcessor.Handle(ctx, cancelToken);
+                    if (_chainProcessors[i].CompensateOnFailure != null) _delegates.Add(_chainProcessors[i].CompensateOnFailure);
+                    ctx = await _chainProcessors[i].Handle(ctx, cancelToken);
                 }
 
                 if (_afterAction == null) return ctx;

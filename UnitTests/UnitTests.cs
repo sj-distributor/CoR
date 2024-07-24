@@ -327,4 +327,69 @@ public class UnitTests
 
         Assert.That(result.Result, Is.EqualTo(9));
     }
+    
+    [Test]
+    public async Task TestNotImplementationCompensateOnFailure()
+    {
+        var result = await CoRProcessor<NumberContext>
+            .New()
+            .AddRange([
+                new SubtractionProcessor(),
+                new ExceptionProcessor(),
+                new SubtractionProcessor(),
+            ])
+            .OnException(async (t, e, token) => await Task.FromResult(false))
+            .Execute(new NumberContext()
+            {
+                Number1 = 1,
+                Number2 = 1,
+                Operation = Operation.Subtraction
+            }, default);
+
+        Assert.That(result.Result, Is.EqualTo(0));
+    }
+    
+    [Test]
+    public async Task TestSpecifyExecution()
+    {
+        var result = await CoRProcessor<NumberContext>
+            .New()
+            .AddRange([
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+            ])
+            .Execute(new NumberContext()
+            {
+                Number1 = 1,
+                Number2 = 1,
+                Operation = Operation.Addition
+            }, default, 3);
+
+
+        Assert.That(result.Result, Is.EqualTo(2));
+    }
+    
+    [Test]
+    public async Task TestNotSpecifyExecution()
+    {
+        var result = await CoRProcessor<NumberContext>
+            .New()
+            .AddRange([
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+            ])
+            .Execute(new NumberContext()
+            {
+                Number1 = 1,
+                Number2 = 1,
+                Operation = Operation.Addition
+            }, default);
+
+
+        Assert.That(result.Result, Is.EqualTo(8));
+    }
 }

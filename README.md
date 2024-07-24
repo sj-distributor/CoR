@@ -55,6 +55,27 @@ public class SampleProcessor : IChainProcessor<MyData>
 
 ```
 
+### Specify Execution ⚙️
+You can specify the order of execution of processors in the chain.
+```csharp
+    var result = await CoRProcessor<NumberContext>
+            .New()
+            .AddRange([
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+                new AdditionProcessor(),
+            ])
+            .Execute(new NumberContext()
+            {
+                Number1 = 1,
+                Number2 = 1,
+                Operation = Operation.Addition
+            }, default, 2, 3); // The processor specified with index 2 and 3 will execute, while the others will not execute
+
+    Console.WriteLine(result.Data);
+```
+
 ### Create and Execute the Processor Chain 🏗️
 You can create and execute a processor chain using the `CoRProcessor<T>` class. Here's how to do it:
 ```csharp
