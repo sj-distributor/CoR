@@ -21,16 +21,34 @@ dotnet add package CoRProcessor
 ```csharp
 public class SampleProcessor : IChainProcessor<MyData>
 {
-    public IChainProcessor<MyData> Next { get; set; }
-
     public async Task<MyData> Handle(MyData data, CancellationToken token = default)
     {
         // Process the data
         Console.WriteLine("Processing in SampleProcessor");
 
         // Call the next processor in the chain
-        return await Next.Handle(data, token);
+        return Task.FromResult(data);
     }
+}
+
+```
+
+### 补偿机制 ↩️
+CoRProcessor 框架支持补偿机制，允许在处理过程中发生异常时执行操作。
+```csharp
+public class SampleProcessor : IChainProcessor<MyData>
+{
+    public async Task<MyData> Handle(MyData data, CancellationToken token = default)
+    {
+        throw new Exception();          // 1. 发生异常
+        return Task.FromResult(data);
+    }
+    
+    public FuncDelegate<MyData> CompensateOnFailure { get; set; } = (context, token) =>
+    {
+        // 2. 只要执行的链路里面发生异常, 补偿机制的方法将会被依次执行
+        return Task.FromResult(context);
+    }; 
 }
 
 ```
@@ -40,8 +58,9 @@ public class SampleProcessor : IChainProcessor<MyData>
 ```csharp
 class Program
 {
-    public class MyData
+    public class MyData : IChainContext
     {
+        public bool Abort { get; set; } // Abort = true, 可以跳过整个链路, 停止执行
         public string Data { get; set; }
     }
     
@@ -55,12 +74,12 @@ class Program
 
         var processor = CoRProcessor<MyData>.New()
             .AddRange(processors)
-            .Before(async (data, token) =>
+            .GlobalPreExecute(async (data, token) =>
             {
                 Console.WriteLine("Before action");
                 await Task.CompletedTask;
             })
-            .After(async (data, token) =>
+            .GlobalExecuted(async (data, token) =>
             {
                 Console.WriteLine("After action");
                 await Task.CompletedTask;
@@ -73,7 +92,7 @@ class Program
             .OnException(async (data, token) =>
             {
                 Console.WriteLine("Exception occurred");
-                await Task.CompletedTask;
+                await Task.FromResult(false); // Returning false will not throw an exception.
             });
 
         var result = await processor.Execute(new MyData(), CancellationToken.None);
@@ -94,7 +113,8 @@ class Program
 processor.OnException(async (data, token) =>
 {
     Console.WriteLine("Exception occurred");
-    await Task.CompletedTask;
+    await Task.FromResult(false); // 返回 false 将不会抛出异常。
+    await Task.FromResult(true);  // 返回 true 将抛出异常。
 });
 ```
 

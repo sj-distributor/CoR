@@ -21,16 +21,36 @@ Processors must implement the `IChainProcessor<T>` interface. Here's an example 
 ```csharp
 public class SampleProcessor : IChainProcessor<MyData>
 {
-    public IChainProcessor<MyData> Next { get; set; }
-
     public async Task<MyData> Handle(MyData data, CancellationToken token = default)
     {
         // Process the data
         Console.WriteLine("Processing in SampleProcessor");
 
         // Call the next processor in the chain
-        return await Next.Handle(data, token);
+        return Task.FromResult(data);
     }
+    
+    public FuncDelegate<MyData> CompensateOnFailure { get; set; }
+}
+
+```
+
+### Compensation ↩️
+The CoRProcessor framework also supports compensation. If a processor throws an exception, you can specify an action to be executed to compensate for the error.
+```csharp
+public class SampleProcessor : IChainProcessor<MyData>
+{
+    public async Task<MyData> Handle(MyData data, CancellationToken token = default)
+    {
+        throw new Exception();          // 1. throw an exception
+        return Task.FromResult(data);
+    }
+    
+    public FuncDelegate<MyData> CompensateOnFailure { get; set; } = (context, token) =>
+    {
+        // 2. If an exception occurs anywhere in the execution chain, the compensation mechanism method will be executed.
+        return Task.FromResult(context);
+    }; 
 }
 
 ```
@@ -40,8 +60,9 @@ You can create and execute a processor chain using the `CoRProcessor<T>` class. 
 ```csharp
 class Program
 {
-    public class MyData
+    public class MyData : IChainContext
     {
+        public bool Abort { get; set; } // Abort = true, To stop processing
         public string Data { get; set; }
     }
     
@@ -55,12 +76,12 @@ class Program
 
         var processor = CoRProcessor<MyData>.New()
             .AddRange(processors)
-            .Before(async (data, token) =>
+            .GlobalPreExecute(async (data, token) =>
             {
                 Console.WriteLine("Before action");
                 await Task.CompletedTask;
             })
-            .After(async (data, token) =>
+            .GlobalExecuted(async (data, token) =>
             {
                 Console.WriteLine("After action");
                 await Task.CompletedTask;
@@ -73,7 +94,7 @@ class Program
             .OnException(async (data, token) =>
             {
                 Console.WriteLine("Exception occurred");
-                await Task.CompletedTask;
+                await Task.FromResult(false); // Returning false will not throw an exception.
             });
 
         var result = await processor.Execute(new MyData(), CancellationToken.None);
@@ -94,7 +115,8 @@ To handle exceptions, you can use the OnException method. This allows you to spe
 processor.OnException(async (data, token) =>
 {
     Console.WriteLine("Exception occurred");
-    await Task.CompletedTask;
+    await Task.FromResult(false); // Returning false will not throw an exception.
+    await Task.FromResult(true);  // Returning true will throw an exception.
 });
 ```
 
